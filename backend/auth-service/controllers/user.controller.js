@@ -6,6 +6,7 @@ const {
 } = require("../services/user.service");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { generateToken } = require("../services/jwt.service");
 
 const signUpStudent = async (req, res) => {
   var { email, password, studentId, firstName, lastName, gender } = req.body;
@@ -71,8 +72,8 @@ const verifyStudent = async (req, res) => {
   const email = payload.email;
 
   try {
-    var student = await updateStudentVerifyStatus({ email });
-    console.log(student);
+    await updateStudentVerifyStatus({ email });
+
     res.json({
       success: true,
       data: {},
@@ -85,6 +86,50 @@ const verifyStudent = async (req, res) => {
   }
 };
 
-const logInStudent = async (req, res) => {};
+const logInStudent = async (req, res) => {
+  const { email, password } = req.body;
+
+  const student = await findStudentByEmail({ email });
+
+  if (!student) {
+    return res.status(404).json({
+      success: false,
+      message: "Can't find any account with this email",
+    });
+  }
+
+  if (!student.isVerify) {
+    return res.status(401).json({
+      success: false,
+      message: "Account's not verify",
+    });
+  }
+
+  const isPasswordMatch = bcrypt.compareSync(password, student.password);
+
+  if (!isPasswordMatch) {
+    return res.status(401).json({
+      success: false,
+      message: "Password's not match",
+    });
+  }
+
+  const payload = {
+    studentId: student.studentId,
+    firstName: student.firstName,
+    lastName: student.lastName,
+    email: student.email,
+  };
+
+  const { accessToken, refreshToken } = generateToken(payload);
+
+  res.json({
+    success: true,
+    data: {
+      accessToken,
+      refreshToken,
+    },
+  });
+};
 
 module.exports = { signUpStudent, logInStudent, verifyStudent };
