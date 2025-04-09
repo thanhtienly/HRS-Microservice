@@ -11,8 +11,9 @@ const AUTH_SERVICE_HOST = process.env.AUTH_SERVICE_HOST;
 const API_GATEWAY_HOST = process.env.API_GATEWAY_HOST;
 
 const handleSignUpStudent = async (req, res) => {
+  var urlPath = req.originalUrl;
   var response = await client.post(
-    `${AUTH_SERVICE_HOST}/auth/student/sign-up`,
+    `${AUTH_SERVICE_HOST}${urlPath}`,
     {
       ...req.body,
     },
@@ -56,4 +57,27 @@ const handleVerifyStudent = async (req, res) => {
   });
 };
 
-module.exports = { handleSignUpStudent, handleVerifyStudent };
+const handleLoginStudent = async (req, res) => {
+  var urlPath = req.originalUrl;
+  var response = await client.post(
+    `${AUTH_SERVICE_HOST}${urlPath}`,
+    {
+      ...req.body,
+    },
+    {
+      "Content-Type": "application/json",
+    }
+  );
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
+module.exports = {
+  handleSignUpStudent,
+  handleVerifyStudent,
+  handleLoginStudent,
+};
