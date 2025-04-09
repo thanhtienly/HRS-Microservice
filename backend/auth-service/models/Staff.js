@@ -31,6 +31,15 @@ const Staff = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    isVerify: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    verifiedAt: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
   },
   {
     tableName: "staffs",

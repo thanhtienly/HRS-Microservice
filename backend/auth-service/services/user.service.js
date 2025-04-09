@@ -26,7 +26,22 @@ const findStudentByEmail = async ({ email }) => {
   });
 };
 
+const updateStudentVerifyStatus = async ({ email }) => {
+  return await Student.update(
+    {
+      isVerify: true,
+      verifiedAt: new Date().getTime(),
+    },
+    {
+      where: {
+        email,
+      },
+    }
+  );
+};
+
 module.exports = {
-  findStudentByEmail,
   createStudent,
+  findStudentByEmail,
+  updateStudentVerifyStatus,
 };

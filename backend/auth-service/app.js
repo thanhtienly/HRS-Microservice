@@ -9,6 +9,8 @@ const { Student } = require("./models/Student");
 const { Staff } = require("./models/Staff");
 const { Manager } = require("./models/Manager");
 
+const { validateRequestSource } = require("./middlewares/validation");
+
 const app = express();
 app.use(express.json());
 app.use(
@@ -19,7 +21,7 @@ app.use(
 
 const userRoute = require("./routes/user.route");
 
-app.use("/auth", userRoute);
+app.use("/auth", validateRequestSource, userRoute);
 
 initDB()
   .then(() => {
