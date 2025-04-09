@@ -1,3 +1,4 @@
+require("dotenv").config();
 const client = require("../services/client.service");
 const { generateVerifyToken } = require("../services/jwt.service");
 const { publishToQueue } = require("../services/rabbitmq.service");
@@ -16,9 +17,7 @@ const handleSignUpStudent = async (req, res) => {
       ...req.body,
     },
     {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      "Content-Type": "application/json",
     }
   );
 
@@ -46,4 +45,15 @@ const handleSignUpStudent = async (req, res) => {
   });
 };
 
-module.exports = { handleSignUpStudent };
+const handleVerifyStudent = async (req, res) => {
+  var urlPath = req.originalUrl;
+  var response = await client.get(`${AUTH_SERVICE_HOST}${urlPath}`);
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
+module.exports = { handleSignUpStudent, handleVerifyStudent };

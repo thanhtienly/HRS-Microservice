@@ -8,5 +8,5 @@ router.post(
   validation.validateCreateStudentDTO,
   userController.handleSignUpStudent
 );
-
+router.get("/student/verify", userController.handleVerifyStudent);
 module.exports = router;
