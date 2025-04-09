@@ -11,6 +11,10 @@ router.post(
 
 router.get("/student/verify", userController.verifyStudent);
 
-router.post("/student/log-in", userController.logInStudent);
+router.post(
+  "/student/log-in",
+  validation.validateLoginDTO,
+  userController.logInStudent
+);
 
 module.exports = router;
