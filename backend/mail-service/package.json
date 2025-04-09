@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "amqplib": "^0.10.7",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "joi": "^17.13.3",
+    "nodemailer": "^6.10.0",
+    "nodemon": "^3.1.9"
+  },
+  "name": "hrs-mail-service",
+  "version": "1.0.0",
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "start:dev": "nodemon app.js"
+  },
+  "author": "Tien Ly Thanh <tien.lythanh@outlook.com>",
+  "license": "ISC",
+  "description": ""
+}
