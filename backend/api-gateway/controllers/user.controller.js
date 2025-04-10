@@ -18,7 +18,9 @@ const handleSignUpStudent = async (req, res) => {
       ...req.body,
     },
     {
-      "Content-Type": "application/json",
+      headers: {
+        "Content-Type": "application/json",
+      },
     }
   );
 
@@ -65,7 +67,9 @@ const handleLoginStudent = async (req, res) => {
       ...req.body,
     },
     {
-      "Content-Type": "application/json",
+      headers: {
+        "Content-Type": "application/json",
+      },
     }
   );
 

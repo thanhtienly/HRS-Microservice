@@ -1,7 +1,7 @@
 const axios = require("axios");
 require("dotenv").config();
 
-const post = async (url = "", body = {}, headers = {}) => {
+const post = async (url = "", body = {}, config = { headers: {} }) => {
   axios.defaults.headers["x-api-key"] = process.env.API_GATEWAY_SECRET;
   const response = await axios
     .post(
@@ -9,7 +9,7 @@ const post = async (url = "", body = {}, headers = {}) => {
       {
         ...body,
       },
-      { headers: { ...headers } }
+      { ...config }
     )
     .then((res) => {
       return {
@@ -29,16 +29,10 @@ const post = async (url = "", body = {}, headers = {}) => {
   return response;
 };
 
-const get = async (url = "", body = {}, headers = {}) => {
+const get = async (url = "", config = { headers: {} }) => {
   axios.defaults.headers["x-api-key"] = process.env.API_GATEWAY_SECRET;
   const response = await axios
-    .get(
-      url,
-      {
-        ...body,
-      },
-      { headers: { ...headers } }
-    )
+    .get(url, { ...config })
     .then((res) => {
       return {
         status: res.status,
