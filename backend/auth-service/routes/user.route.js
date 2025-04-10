@@ -17,4 +17,10 @@ router.post(
   userController.logInStudent
 );
 
+router.post(
+  "/student/find-by-email",
+  validation.validateBodySearchStudentDTO,
+  userController.searchStudentByEmail
+);
+
 module.exports = router;

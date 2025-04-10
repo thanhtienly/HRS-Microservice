@@ -1,6 +1,10 @@
 require("dotenv").config();
 const { validateBody, validateQuery } = require("../validation");
-const { createStudentDTO, loginDTO } = require("../dto/user.dto");
+const {
+  createStudentDTO,
+  loginDTO,
+  searchStudentDTO,
+} = require("../dto/user.dto");
 
 const validateRequestSource = (req, res, next) => {
   const apiSecret = req.headers["x-api-key"];
@@ -22,8 +26,13 @@ const validateLoginDTO = (req, res, next) => {
   return validateBody(loginDTO, req, res, next);
 };
 
+const validateBodySearchStudentDTO = (req, res, next) => {
+  return validateBody(searchStudentDTO, req, res, next);
+};
+
 module.exports = {
   validateRequestSource,
   validateCreateStudentDTO,
   validateLoginDTO,
+  validateBodySearchStudentDTO,
 };
