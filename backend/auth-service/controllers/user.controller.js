@@ -119,6 +119,7 @@ const logInStudent = async (req, res) => {
     firstName: student.firstName,
     lastName: student.lastName,
     email: student.email,
+    role: "Student",
   };
 
   const { accessToken, refreshToken } = generateToken(payload);
