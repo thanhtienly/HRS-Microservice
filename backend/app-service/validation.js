@@ -19,6 +19,7 @@ const validateBody = (schema, req, res, next) => {
 
   if (!data) {
     return res.status(400).json({
+      success: false,
       message: "Request body required",
     });
   }
@@ -27,6 +28,7 @@ const validateBody = (schema, req, res, next) => {
 
   if (error) {
     return res.status(400).json({
+      success: false,
       message: getErrorMessage(error.details),
     });
   }
@@ -41,6 +43,7 @@ const validateQuery = (schema, req, res, next) => {
 
   if (error) {
     return res.status(400).json({
+      success: false,
       message: getErrorMessage(error.details),
     });
   }
