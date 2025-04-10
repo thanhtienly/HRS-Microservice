@@ -34,7 +34,7 @@ const Reservation = sequelize.define(
       allowNull: true,
     },
     state: {
-      type: DataTypes.ENUM(["Booked", "Cancelled", "Expired"]),
+      type: DataTypes.ENUM(["Booked", "Cancelled", "Check-In", "Expired"]),
       allowNull: false,
     },
   },
