@@ -23,4 +23,8 @@ const loginDTO = Joi.object({
   password: Joi.string().required(),
 }).required();
 
-module.exports = { createStudentDTO, loginDTO };
+const searchStudentDTO = Joi.object({
+  email: Joi.string().email().required(),
+}).required();
+
+module.exports = { createStudentDTO, loginDTO, searchStudentDTO };

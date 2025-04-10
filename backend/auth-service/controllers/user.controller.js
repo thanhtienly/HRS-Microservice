@@ -133,4 +133,27 @@ const logInStudent = async (req, res) => {
   });
 };
 
-module.exports = { signUpStudent, logInStudent, verifyStudent };
+const searchStudentByEmail = async (req, res) => {
+  const { email } = req.body;
+
+  var student = await findStudentByEmail({ email });
+
+  if (!student) {
+    return res.status(404).json({
+      success: false,
+      message: "Your email haven't registered",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: student,
+  });
+};
+
+module.exports = {
+  signUpStudent,
+  logInStudent,
+  verifyStudent,
+  searchStudentByEmail,
+};
