@@ -92,6 +92,24 @@ async function seed() {
       reservedAt: new Date().getTime() - 2 * 24 * 60 * 60 * 1000,
       secret: "secret6",
     },
+    {
+      id: "7",
+      roomId: "1",
+      studentId: "2256789",
+      from: new Date().getTime() + 24 * 60 * 60 * 1000 + 60 * 60 * 1000,
+      to: new Date().getTime() + 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000,
+      reservedAt: new Date().getTime(),
+      secret: "secret7",
+    },
+    {
+      id: "8",
+      roomId: "1",
+      studentId: "2256789",
+      from: new Date().getTime() + 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000,
+      to: new Date().getTime() + 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000,
+      reservedAt: new Date().getTime(),
+      secret: "secret8",
+    },
   ]);
 }
 
