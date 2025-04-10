@@ -15,14 +15,14 @@ const post = async (url = "", body = {}, config = { headers: {} }) => {
       return {
         status: res.status,
         success: res.data.success,
-        data: res.data.data,
+        data: res.data?.data,
       };
     })
     .catch((err) => {
       return {
         status: err.status,
         success: false,
-        message: err.response.data.message,
+        message: err.response.data?.message,
       };
     });
 
@@ -37,14 +37,14 @@ const get = async (url = "", config = { headers: {} }) => {
       return {
         status: res.status,
         success: res.data.success,
-        data: res.data.data,
+        data: res.data?.data,
       };
     })
     .catch((err) => {
       return {
         status: err.status,
         success: false,
-        message: err.response.data.message,
+        message: err.response.data?.message,
       };
     });
 

@@ -13,4 +13,21 @@ router.get(
   bookingController.handleGetBookingHistory
 );
 
+router.get("/time-slot", bookingController.handleGetBookedTimeSlot);
+router.post(
+  "/time-slot",
+  authorizedTokenMiddleware,
+  isStudentMiddleware,
+  bookingController.handleBookTimeSlot
+);
+
+router.post(
+  "/invite",
+  authorizedTokenMiddleware,
+  isStudentMiddleware,
+  bookingController.handleCreateInvitation
+);
+
+router.get("/invite/verify", bookingController.handleAcceptInvitation);
+
 module.exports = router;
