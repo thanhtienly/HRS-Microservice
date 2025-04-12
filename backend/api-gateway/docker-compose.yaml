@@ -1,0 +1,30 @@
+version: "1"
+
+services:
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    restart: unless-stopped
+    command: npm run start
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./
+          target: /usr/app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./.env
+    volumes:
+      - /app/node_modules/
+    networks:
+      - hrsApp
+
+networks:
+  hrsApp:
+    name: "hrsApp"
+    driver: bridge

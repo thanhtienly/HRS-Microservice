@@ -12,6 +12,7 @@ const API_GATEWAY_HOST = process.env.API_GATEWAY_HOST;
 
 const handleSignUpStudent = async (req, res) => {
   var urlPath = req.originalUrl;
+  console.log(`${AUTH_SERVICE_HOST}${urlPath}`);
   var response = await client.post(
     `${AUTH_SERVICE_HOST}${urlPath}`,
     {
