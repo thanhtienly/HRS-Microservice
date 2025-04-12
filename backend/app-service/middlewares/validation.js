@@ -15,6 +15,8 @@ const validateRequestSource = (req, res, next) => {
       message: "Invalid source of request",
     });
   }
+
+  console.log("Accepted Request");
   next();
 };
 

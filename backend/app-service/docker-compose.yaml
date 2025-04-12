@@ -1,0 +1,52 @@
+version: "1"
+
+services:
+  app-db:
+    image: mysql:5.5
+    container_name: app-db
+    restart: always
+    ports:
+      - "3308:3306"
+    expose:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: Dothithaoquyen985
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Dothithaoquyen985
+    volumes:
+      - my-db:/var/lib/mysql
+    networks:
+      - hrsApp
+
+  app-service:
+    build: .
+    container_name: app-service
+    restart: unless-stopped
+    command: npm run start
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./
+          target: /usr/app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    ports:
+      - "7000:3000"
+    env_file:
+      - ./.env
+    volumes:
+      - /app/node_modules/
+    depends_on:
+      - app-db
+    networks:
+      - hrsApp
+
+volumes:
+  my-db:
+
+networks:
+  hrsApp:
+    name: "hrsApp"
+    driver: bridge
