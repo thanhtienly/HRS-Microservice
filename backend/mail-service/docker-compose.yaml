@@ -1,0 +1,53 @@
+version: "1"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    expose:
+      - 5672
+      - 15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - /.rabbitmq/data/:/var/lib/rabbitmq
+    networks:
+      - hrsApp
+
+  mail-service:
+    build: .
+    container_name: mail-service
+    restart: unless-stopped
+    command: npm run start
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./
+          target: /usr/app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    ports:
+      - "5000:3000"
+    env_file:
+      - ./.env
+    volumes:
+      - .:/usr/app/
+    depends_on:
+      - rabbitmq
+    networks:
+      - hrsApp
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  hrsApp:
+    name: "hrsApp"
+    driver: bridge
