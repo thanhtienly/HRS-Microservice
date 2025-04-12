@@ -12,7 +12,8 @@
   "main": "app.js",
   "devDependencies": {},
   "scripts": {
-    "start:dev": "nodemon app.js"
+    "start:dev": "nodemon app.js",
+    "start": "node app.js"
   },
   "author": "Tien Ly Thanh <tien.lythanh@outlook.com>",
   "license": "ISC",

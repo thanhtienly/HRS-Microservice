@@ -7,7 +7,7 @@ const {
 
 const consumeVerifyAccountQueue = async () => {
   var connection = await amqplib.connect(
-    `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@localhost:${process.env.RABBITMQ_PORT}`
+    `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}/`
   );
   var channel = await connection.createChannel();
   var exchange = process.env.RABBITMQ_EXCHANGE;
@@ -36,7 +36,7 @@ const consumeVerifyAccountQueue = async () => {
 
 const consumeInvitationQueue = async () => {
   var connection = await amqplib.connect(
-    `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@localhost:${process.env.RABBITMQ_PORT}`
+    `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}/`
   );
   var channel = await connection.createChannel();
   var exchange = process.env.RABBITMQ_EXCHANGE;
