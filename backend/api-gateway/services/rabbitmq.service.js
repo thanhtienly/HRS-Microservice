@@ -8,7 +8,7 @@ const publishToQueue = async (
   data = JSON.stringify({})
 ) => {
   var connection = await amqplib.connect(
-    `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@localhost:${process.env.RABBITMQ_PORT}`
+    `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}`
   );
 
   var channel = await connection.createChannel();
