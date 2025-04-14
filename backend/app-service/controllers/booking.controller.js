@@ -219,7 +219,7 @@ const createInvitation = async (req, res) => {
   if (studentId != reservation.studentId) {
     return res.status(401).json({
       success: false,
-      message: "This reservation's not belong to you",
+      message: "You're not owner of this reservation",
     });
   }
 
@@ -238,8 +238,7 @@ const createInvitation = async (req, res) => {
   if (roomCapacity - roomReservationList.length < participants.length) {
     return res.status(400).json({
       success: false,
-      message:
-        "The number of invited participants is larger than the remaining capacity of the room.",
+      message: "Invalid number of invited participants",
     });
   }
 
@@ -292,6 +291,7 @@ const acceptInvitation = async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
+          "correlation-id": req.headers["correlation-id"],
         },
       }
     );
@@ -314,7 +314,7 @@ const acceptInvitation = async (req, res) => {
     if (reservationList.length == 0) {
       return res.status(404).json({
         success: false,
-        message: "Invalid secret, can't find any room with secret",
+        message: "Invalid secret",
       });
     }
 
@@ -330,7 +330,7 @@ const acceptInvitation = async (req, res) => {
     if (isJoin) {
       return res.status(403).json({
         success: false,
-        message: "You've accepted the invitation once",
+        message: "Duplicate joining",
       });
     }
 
@@ -343,8 +343,7 @@ const acceptInvitation = async (req, res) => {
     if (reservationList.length == roomCapacity) {
       return res.status(400).json({
         success: false,
-        message:
-          "Currently, the room's full. Please ask the inviter about this problem",
+        message: "The room's full",
       });
     }
 

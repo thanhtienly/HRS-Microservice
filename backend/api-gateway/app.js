@@ -7,6 +7,10 @@ app.use(express.json());
 
 const userRoute = require("./routes/user.route");
 const bookingRoute = require("./routes/booking.route");
+const logger = require("./middlewares/logging.middleware");
+
+app.use(logger.initCorrelationId);
+app.use(logger.publishLog);
 
 app.use("/auth", userRoute);
 app.use("/booking", bookingRoute);

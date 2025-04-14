@@ -25,6 +25,10 @@ app.use(
 );
 
 const bookingRoute = require("./routes/booking.route");
+const logger = require("./middlewares/logging.middleware");
+
+app.use(logger.initCorrelationId);
+app.use(logger.publishLog);
 
 app.use("/booking", validateRequestSource, bookingRoute);
 

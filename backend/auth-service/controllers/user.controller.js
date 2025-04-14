@@ -70,7 +70,7 @@ const verifyStudent = async (req, res) => {
   }
 
   const email = payload.email;
-
+  console.log(email);
   try {
     await updateStudentVerifyStatus({ email });
 

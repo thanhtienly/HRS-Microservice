@@ -18,6 +18,8 @@ services:
       - /.rabbitmq/data/:/var/lib/rabbitmq
     networks:
       - hrsApp
+    env_file:
+      - ./.env
 
   mail-service:
     build: .
