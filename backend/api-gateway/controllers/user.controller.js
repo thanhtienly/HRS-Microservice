@@ -12,7 +12,6 @@ const API_GATEWAY_HOST = process.env.API_GATEWAY_HOST;
 
 const handleSignUpStudent = async (req, res) => {
   var urlPath = req.originalUrl;
-  console.log(`${AUTH_SERVICE_HOST}${urlPath}`);
   var response = await client.post(
     `${AUTH_SERVICE_HOST}${urlPath}`,
     {
@@ -21,6 +20,7 @@ const handleSignUpStudent = async (req, res) => {
     {
       headers: {
         "Content-Type": "application/json",
+        "correlation-id": req.headers["correlation-id"],
       },
     }
   );
@@ -51,7 +51,11 @@ const handleSignUpStudent = async (req, res) => {
 
 const handleVerifyStudent = async (req, res) => {
   var urlPath = req.originalUrl;
-  var response = await client.get(`${AUTH_SERVICE_HOST}${urlPath}`);
+  var response = await client.get(`${AUTH_SERVICE_HOST}${urlPath}`, {
+    headers: {
+      "correlation-id": req.headers["correlation-id"],
+    },
+  });
 
   res.status(response.status).json({
     success: response.success,
@@ -70,6 +74,7 @@ const handleLoginStudent = async (req, res) => {
     {
       headers: {
         "Content-Type": "application/json",
+        "correlation-id": req.headers["correlation-id"],
       },
     }
   );

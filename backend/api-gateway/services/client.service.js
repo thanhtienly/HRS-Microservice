@@ -19,7 +19,6 @@ const post = async (url = "", body = {}, config = { headers: {} }) => {
       };
     })
     .catch((err) => {
-      console.log(err);
       return {
         status: err.status,
         success: false,
@@ -42,10 +41,11 @@ const get = async (url = "", config = { headers: {} }) => {
       };
     })
     .catch((err) => {
+      console.log(err);
       return {
         status: err.status,
         success: false,
-        message: err.response.data?.message,
+        message: err.response?.data?.message,
       };
     });
 

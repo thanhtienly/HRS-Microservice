@@ -16,6 +16,7 @@ const handleGetBookingHistory = async (req, res) => {
     headers: {
       "Content-Type": "application/json",
       user: JSON.stringify(user),
+      "correlation-id": req.headers["correlation-id"],
     },
   });
 
@@ -33,6 +34,7 @@ const handleGetBookedTimeSlot = async (req, res) => {
   const response = await client.get(`${APP_SERVICE_HOST}${urlPath}`, {
     headers: {
       "Content-Type": "application/json",
+      "correlation-id": req.headers["correlation-id"],
     },
   });
 
@@ -55,6 +57,7 @@ const handleBookTimeSlot = async (req, res) => {
       headers: {
         "Content-Type": "application/json",
         user: JSON.stringify(user),
+        "correlation-id": req.headers["correlation-id"],
       },
     }
   );
@@ -78,6 +81,7 @@ const handleCreateInvitation = async (req, res) => {
       headers: {
         "Content-Type": "application/json",
         user: JSON.stringify(user),
+        "correlation-id": req.headers["correlation-id"],
       },
     }
   );
@@ -133,6 +137,7 @@ const handleAcceptInvitation = async (req, res) => {
   const response = await client.get(`${APP_SERVICE_HOST}${urlPath}`, {
     headers: {
       "Content-Type": "application/json",
+      "correlation-id": req.headers["correlation-id"],
     },
   });
 
