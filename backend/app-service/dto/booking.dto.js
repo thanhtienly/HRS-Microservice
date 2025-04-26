@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const getBookedTimeSlotDTO = Joi.object({
+const getTimeSlotDTO = Joi.object({
   date: Joi.string().isoDate().required(),
   roomId: Joi.string().required(),
 }).required();
@@ -8,11 +8,13 @@ const getBookedTimeSlotDTO = Joi.object({
 const bookTimeSlotDTO = Joi.object({
   date: Joi.string().isoDate().required(),
   roomId: Joi.string().required(),
-  from: Joi.string()
-    .pattern(/^[0-9]{2}:[0-9]{2}$/)
-    .required(),
-  to: Joi.string()
-    .pattern(/^[0-9]{2}:[0-9]{2}$/)
+  timeSlot: Joi.array()
+    .min(1)
+    .items(
+      Joi.string()
+        .pattern(/^[0-9]{2}:[0-9]{2} - [0-9]{2}:[0-9]{2}$/)
+        .required()
+    )
     .required(),
 }).required();
 
@@ -24,4 +26,4 @@ const invitationDTO = Joi.object({
     .required(),
 }).required();
 
-module.exports = { getBookedTimeSlotDTO, bookTimeSlotDTO, invitationDTO };
+module.exports = { getTimeSlotDTO, bookTimeSlotDTO, invitationDTO };

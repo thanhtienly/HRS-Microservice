@@ -25,12 +25,16 @@ app.use(
 );
 
 const bookingRoute = require("./routes/booking.route");
+const ssaRoute = require("./routes/selfStudyArea.route");
+const roomRoute = require("./routes/room.route");
 const logger = require("./middlewares/logging.middleware");
 
 app.use(logger.initCorrelationId);
 app.use(logger.publishLog);
 
 app.use("/booking", validateRequestSource, bookingRoute);
+app.use("/self-study-area", validateRequestSource, ssaRoute);
+app.use("/room", validateRequestSource, roomRoute);
 
 initDB()
   .then(() => {

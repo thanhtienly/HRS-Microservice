@@ -1,17 +1,20 @@
 const { Router } = require("express");
 const bookingController = require("../controllers/booking.controller");
 const {
-  validateQueryGetBookedTimeSlotDTO,
+  validateQueryGetTimeSlotDTO,
   validateBodyBookTimeSlotDTO,
   validateBodyInvitationDTO,
 } = require("../middlewares/validation");
 const router = Router();
 
+router.get("/total", bookingController.getRoomReservedCount);
+
 router.get("/history", bookingController.getBookingHistory);
+
 router.get(
   "/time-slot",
-  validateQueryGetBookedTimeSlotDTO,
-  bookingController.getBookedTimeSlot
+  validateQueryGetTimeSlotDTO,
+  bookingController.getTimeSlot
 );
 router.post(
   "/time-slot",

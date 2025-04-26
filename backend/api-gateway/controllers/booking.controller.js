@@ -7,6 +7,24 @@ const RABBITMQ_EXCHANGE = process.env.RABBITMQ_EXCHANGE;
 const RABBITMQ_INVITATION_QUEUE = process.env.RABBITMQ_INVITATION_QUEUE;
 const RABBITMQ_INVITATION_ROUTE_KEY = process.env.RABBITMQ_INVITATION_ROUTE_KEY;
 
+const handleGetRoomReservedCount = async (req, res) => {
+  var urlPath = req.originalUrl;
+
+  const APP_SERVICE_HOST = process.env.APP_SERVICE_HOST;
+  const response = await client.get(`${APP_SERVICE_HOST}${urlPath}`, {
+    headers: {
+      "Content-Type": "application/json",
+      "correlation-id": req.headers["correlation-id"],
+    },
+  });
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
 const handleGetBookingHistory = async (req, res) => {
   const user = req["user"];
   var urlPath = req.originalUrl;
@@ -27,7 +45,7 @@ const handleGetBookingHistory = async (req, res) => {
   });
 };
 
-const handleGetBookedTimeSlot = async (req, res) => {
+const handleGetTimeSlot = async (req, res) => {
   var urlPath = req.originalUrl;
 
   const APP_SERVICE_HOST = process.env.APP_SERVICE_HOST;
@@ -149,8 +167,9 @@ const handleAcceptInvitation = async (req, res) => {
 };
 
 module.exports = {
+  handleGetRoomReservedCount,
   handleGetBookingHistory,
-  handleGetBookedTimeSlot,
+  handleGetTimeSlot,
   handleBookTimeSlot,
   handleCreateInvitation,
   handleAcceptInvitation,

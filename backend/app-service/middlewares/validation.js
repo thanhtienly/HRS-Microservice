@@ -1,10 +1,14 @@
 require("dotenv").config();
 const { validateQuery, validateBody } = require("../validation");
 const {
-  getBookedTimeSlotDTO,
+  getTimeSlotDTO,
   bookTimeSlotDTO,
   invitationDTO,
 } = require("../dto/booking.dto");
+const {
+  getRoomListWithQueryDTO,
+  createRoomFeedbackDTO,
+} = require("../dto/room.dto");
 
 const validateRequestSource = (req, res, next) => {
   const apiSecret = req.headers["x-api-key"];
@@ -15,13 +19,19 @@ const validateRequestSource = (req, res, next) => {
       message: "Invalid source of request",
     });
   }
-
-  console.log("Accepted Request");
   next();
 };
 
-const validateQueryGetBookedTimeSlotDTO = (req, res, next) => {
-  return validateQuery(getBookedTimeSlotDTO, req, res, next);
+const validateQueryGetRoomListDTO = (req, res, next) => {
+  return validateQuery(getRoomListWithQueryDTO, req, res, next);
+};
+
+const validateQueryGetTimeSlotDTO = (req, res, next) => {
+  return validateQuery(getTimeSlotDTO, req, res, next);
+};
+
+const validateBodyCreateRoomFeedbackDTO = (req, res, next) => {
+  return validateBody(createRoomFeedbackDTO, req, res, next);
 };
 
 const validateBodyBookTimeSlotDTO = (req, res, next) => {
@@ -34,7 +44,9 @@ const validateBodyInvitationDTO = (req, res, next) => {
 
 module.exports = {
   validateRequestSource,
-  validateQueryGetBookedTimeSlotDTO,
+  validateQueryGetRoomListDTO,
+  validateQueryGetTimeSlotDTO,
+  validateBodyCreateRoomFeedbackDTO,
   validateBodyBookTimeSlotDTO,
   validateBodyInvitationDTO,
 };
