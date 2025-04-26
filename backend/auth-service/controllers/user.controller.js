@@ -3,6 +3,7 @@ const {
   findStudentByEmail,
   createStudent,
   updateStudentVerifyStatus,
+  findStudentByStudentId,
 } = require("../services/user.service");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -151,9 +152,28 @@ const searchStudentByEmail = async (req, res) => {
   });
 };
 
+const searchStudentByStudentId = async (req, res) => {
+  const { studentId } = req.body;
+
+  var student = await findStudentByStudentId({ studentId });
+
+  if (!student) {
+    return res.status(404).json({
+      success: false,
+      message: "Student not found",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: student,
+  });
+};
+
 module.exports = {
   signUpStudent,
   logInStudent,
   verifyStudent,
   searchStudentByEmail,
+  searchStudentByStudentId,
 };

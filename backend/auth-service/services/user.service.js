@@ -40,8 +40,17 @@ const updateStudentVerifyStatus = async ({ email }) => {
   );
 };
 
+const findStudentByStudentId = async ({ studentId }) => {
+  return await Student.findOne({
+    where: {
+      studentId: studentId,
+    },
+  });
+};
+
 module.exports = {
   createStudent,
   findStudentByEmail,
   updateStudentVerifyStatus,
+  findStudentByStudentId,
 };
