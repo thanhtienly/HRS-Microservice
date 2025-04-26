@@ -27,10 +27,13 @@ const Feedback = sequelize.define(
     },
     status: {
       type: DataTypes.ENUM("Pending", "In-Progress", "Done"),
+      defaultValue: "Pending",
       allowNull: false,
     },
   },
   {
+    charset: "utf8",
+    collate: "utf8_unicode_ci",
     tableName: "feedbacks",
     timestamps: false,
   }

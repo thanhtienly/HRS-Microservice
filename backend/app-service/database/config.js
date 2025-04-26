@@ -15,6 +15,10 @@ const sequelizeOption = {
   port: MYSQL_PORT,
   dialect: "mysql",
   logging: false,
+  define: {
+    charset: 'utf8',
+    collate: 'utf8_unicode_ci'
+  }
 };
 
 async function initDB() {

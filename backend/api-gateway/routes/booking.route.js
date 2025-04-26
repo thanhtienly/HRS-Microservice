@@ -6,6 +6,8 @@ const {
 } = require("../middlewares/auth.middleware");
 const router = Router();
 
+router.get("/total", bookingController.handleGetRoomReservedCount);
+
 router.get(
   "/history",
   authorizedTokenMiddleware,
@@ -13,7 +15,7 @@ router.get(
   bookingController.handleGetBookingHistory
 );
 
-router.get("/time-slot", bookingController.handleGetBookedTimeSlot);
+router.get("/time-slot", bookingController.handleGetTimeSlot);
 router.post(
   "/time-slot",
   authorizedTokenMiddleware,

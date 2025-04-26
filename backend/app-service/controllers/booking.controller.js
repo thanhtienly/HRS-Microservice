@@ -7,20 +7,35 @@ const {
   findReservationDetailById,
   findAllReservationBySecret,
 } = require("../services/booking.service");
-const moment = require("moment-timezone");
 const jwt = require("jsonwebtoken");
 const client = require("../services/client.service");
+const { Reservation } = require("../models/Reservation");
+const {
+  convertToUTC7Full,
+  convertTimeStampToDate,
+  convertTimestampToHHMM,
+} = require("../utils/date");
 
-const convertToUTC7Full = (timestamp) => {
-  return moment.tz(timestamp, "Asia/Ho_Chi_Minh").format("YYYY-MM-DD HH:mm:ss");
-};
+const getRoomReservedCount = async (req, res) => {
+  const roomId = req.query?.roomId;
 
-const convertTimeStampToDate = (timestamp) => {
-  return moment.tz(timestamp, "Asia/Ho_Chi_Minh").format("DD-MM-YYYY");
-};
+  if (!roomId) {
+    return res.status(404).json({
+      success: false,
+      message: "RoomId not found",
+    });
+  }
 
-const convertTimestampToHHMM = (timestamp) => {
-  return moment.tz(timestamp, "Asia/Ho_Chi_Minh").format("HH:mm");
+  const totalReserved = await Reservation.count({
+    where: {
+      roomId: roomId,
+    },
+  });
+
+  res.json({
+    success: true,
+    data: totalReserved,
+  });
 };
 
 const getBookingHistory = async (req, res) => {
@@ -64,11 +79,17 @@ const getBookingHistory = async (req, res) => {
   });
 };
 
-const getBookedTimeSlot = async (req, res) => {
+const getTimeSlot = async (req, res) => {
+  console.log("App service receive request");
   const { date, roomId } = req.query;
 
+  const TIME_SLOT_IN_MINUTE = parseInt(process.env.TIME_SLOT_IN_MINUTE);
+  const SERVICE_START_HOUR = parseInt(process.env.SERVICE_START_HOUR);
+  const SERVICE_END_HOUR = parseInt(process.env.SERVICE_END_HOUR);
+  const SERVICE_TIMEZONE = parseInt(process.env.SERVICE_TIMEZONE);
+
   /* Check if the search date is not before today  */
-  var startOfToday = new Date(new Date().setHours(0, 0, 0));
+  var startOfToday = new Date(new Date().setHours(SERVICE_START_HOUR, 0, 0));
   if (new Date(date).getTime() < startOfToday.getTime()) {
     return res.status(400).json({
       success: false,
@@ -76,43 +97,43 @@ const getBookedTimeSlot = async (req, res) => {
     });
   }
 
-  /* Find all timeSlot's booked by other student */
-  var bookedTimeSlot = await findBookedTimeSlot({ roomId, date });
+  var timeSlotList = [];
 
-  /* Can't find any booked timeSlot */
-  if (bookedTimeSlot.length == 0) {
-    return res.json({
-      data: [],
-      success: true,
+  var startOfSearchDay = new Date(
+    new Date(date).setUTCHours(SERVICE_START_HOUR - SERVICE_TIMEZONE, 0, 0)
+  ).getTime();
+  console.log(startOfSearchDay);
+  for (let i = SERVICE_START_HOUR; i <= SERVICE_END_HOUR; i++) {
+    var timeSlotIndex = i - SERVICE_START_HOUR;
+
+    timeSlotList.push({
+      date: date,
+      startTime: convertTimestampToHHMM(
+        startOfSearchDay + timeSlotIndex * TIME_SLOT_IN_MINUTE * 60 * 1000
+      ),
+      endTime: convertTimestampToHHMM(
+        startOfSearchDay + (timeSlotIndex + 1) * TIME_SLOT_IN_MINUTE * 60 * 1000
+      ),
+      status: "available",
     });
   }
 
-  var timeSlotMerged = [];
-  var tempMerged = bookedTimeSlot[0];
+  /* Find all timeSlot's booked by other student */
+  var bookedTimeSlot = await findBookedTimeSlot({ roomId, date });
 
-  for (let i = 1; i < bookedTimeSlot.length; i++) {
-    /* Check if 2 timeSlot partial overlap, if partial overlap then merge them */
-    if (tempMerged["to"] == bookedTimeSlot[i]["from"]) {
-      tempMerged["to"] = bookedTimeSlot[i]["to"];
-    } else {
-      timeSlotMerged.push({
-        date: date,
-        from: convertTimestampToHHMM(tempMerged["from"]),
-        to: convertTimestampToHHMM(tempMerged["to"]),
-      });
-      tempMerged = bookedTimeSlot[i];
+  for (let i = 0; i < bookedTimeSlot.length; i++) {
+    var timeSlotIndex =
+      (bookedTimeSlot[i].from - startOfSearchDay) /
+      (TIME_SLOT_IN_MINUTE * 60 * 1000);
+
+    if (timeSlotIndex >= 0) {
+      timeSlotList[timeSlotIndex].status = "booked";
     }
   }
 
-  timeSlotMerged.push({
-    date: date,
-    from: convertTimestampToHHMM(tempMerged["from"]),
-    to: convertTimestampToHHMM(tempMerged["to"]),
-  });
-
   res.json({
-    data: timeSlotMerged,
     success: true,
+    data: timeSlotList,
   });
 };
 
@@ -129,49 +150,70 @@ const bookTimeSlot = async (req, res) => {
 
   user = JSON.parse(user);
 
-  var { date, roomId, from, to } = req.body;
-  var startTime = new Date(`${date} ${from}`).getTime();
-  var endTime = new Date(`${date} ${to}`).getTime();
+  var { date, roomId, timeSlot } = req.body;
+  timeSlot = timeSlot.map((item) => {
+    return item.split(/\s-\s/);
+  });
 
-  /* Invalid startTime, endTime constraint */
-  if (startTime > endTime) {
-    return res.status(400).json({
-      success: false,
-      message: "End time can't before start time",
-    });
-  }
+  /* Check if at least 1 time slot overlap */
+  for (let i = 0; i < timeSlot.length; i++) {
+    var startTime = new Date(`${date}T${timeSlot[i][0]}:00+07:00`).getTime();
+    var endTime = new Date(`${date}T${timeSlot[i][1]}:00+07:00`).getTime();
 
-  /* Invalid startTime constraint */
-  if (startTime < new Date().getTime()) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "Invalid booking dateTime, you can't book a room with the past time",
-    });
-  }
+    /* Invalid startTime constraint */
+    if (startTime < new Date().getTime()) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid datetime`,
+      });
+    }
 
-  var overLapBooked = await findOverlapTimeSlot({ roomId, startTime, endTime });
+    /* Invalid time slot
+     * start time or end time is not format at hh:00
+     * time slot lasts more than 1 hour
+     */
+    const TIME_SLOT_IN_MILLISECOND =
+      parseInt(process.env.TIME_SLOT_IN_MINUTE) * 60 * 1000;
 
-  /* This booking overlaps with exist booking */
-  if (overLapBooked.length != 0) {
-    return res.status(400).json({
-      success: false,
-      message: "This booking overlaps with exist booking",
-    });
-  }
+    if (
+      startTime % TIME_SLOT_IN_MILLISECOND != 0 ||
+      endTime % TIME_SLOT_IN_MILLISECOND != 0 ||
+      endTime - startTime != TIME_SLOT_IN_MILLISECOND
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid time slot",
+      });
+    }
 
-  try {
-    const studentId = user["studentId"];
-    const reservation = await createReservation({
+    var overLapBooked = await findOverlapTimeSlot({
       roomId,
-      studentId,
       startTime,
       endTime,
     });
 
-    res.json({
-      success: true,
-      data: {
+    /* This booking overlaps with exist booking */
+    if (overLapBooked.length != 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Overlap booking`,
+      });
+    }
+  }
+
+  try {
+    const studentId = user["studentId"];
+    var reservationList = [];
+
+    for (let i = 0; i < timeSlot.length; i++) {
+      var reservation = await createReservation({
+        roomId: roomId,
+        studentId: studentId,
+        startTime: new Date(`${date}T${timeSlot[i][0]}:00+07:00`).getTime(),
+        endTime: new Date(`${date}T${timeSlot[i][1]}:00+07:00`).getTime(),
+      });
+
+      reservationList.push({
         id: reservation["id"],
         roomId: reservation["roomId"],
         studentId: reservation["studentId"],
@@ -179,7 +221,12 @@ const bookTimeSlot = async (req, res) => {
         to: reservation["to"],
         reservedAt: reservation["reservedAt"],
         state: reservation["state"],
-      },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: reservationList,
     });
   } catch (error) {
     console.log("Error with create reservation");
@@ -370,8 +417,9 @@ const acceptInvitation = async (req, res) => {
 };
 
 module.exports = {
+  getRoomReservedCount,
   getBookingHistory,
-  getBookedTimeSlot,
+  getTimeSlot,
   bookTimeSlot,
   createInvitation,
   acceptInvitation,

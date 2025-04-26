@@ -9,6 +9,7 @@ const router = Router();
 router.get("/type", roomController.getRoomType);
 router.get("/", validateQueryGetRoomListDTO, roomController.getRoomWithQuery);
 router.get("/:id", roomController.getRoomDetail);
+
 router.post(
   "/:id/feedback",
   validateBodyCreateRoomFeedbackDTO,
