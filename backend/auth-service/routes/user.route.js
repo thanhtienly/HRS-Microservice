@@ -23,4 +23,10 @@ router.post(
   userController.searchStudentByEmail
 );
 
+router.post(
+  "/student/find-by-student-id",
+  validation.validateBodyStudentIdDTO,
+  userController.searchStudentByStudentId
+);
+
 module.exports = router;

@@ -4,6 +4,7 @@ const {
   createStudentDTO,
   loginDTO,
   searchStudentDTO,
+  studentIdDTO,
 } = require("../dto/user.dto");
 
 const validateRequestSource = (req, res, next) => {
@@ -30,9 +31,14 @@ const validateBodySearchStudentDTO = (req, res, next) => {
   return validateBody(searchStudentDTO, req, res, next);
 };
 
+const validateBodyStudentIdDTO = (req, res, next) => {
+  return validateBody(studentIdDTO, req, res, next);
+};
+
 module.exports = {
   validateRequestSource,
   validateCreateStudentDTO,
   validateLoginDTO,
   validateBodySearchStudentDTO,
+  validateBodyStudentIdDTO,
 };

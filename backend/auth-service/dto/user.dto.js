@@ -27,4 +27,8 @@ const searchStudentDTO = Joi.object({
   email: Joi.string().email().required(),
 }).required();
 
-module.exports = { createStudentDTO, loginDTO, searchStudentDTO };
+const studentIdDTO = Joi.object({
+  studentId: Joi.string().max(10).required(),
+}).required();
+
+module.exports = { createStudentDTO, loginDTO, searchStudentDTO, studentIdDTO };
