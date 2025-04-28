@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -7,6 +10,21 @@
 
 @theme {
   --breakpoint-sm: 25rem;
+
+  --animate-fade-in: fade-in 1s ease-in-out;
+
+  @keyframes fade-in {
+    0% {
+      top: 75px;
+      right: 0;
+      opacity: 0;
+    }
+    100% {
+      top: 75px;
+      right: 20px;
+      opacity: 1;
+    }
+  }
 }
 
 body {

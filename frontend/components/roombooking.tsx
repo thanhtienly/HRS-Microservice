@@ -1,6 +1,8 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getCookie } from "cookies-next/client";
+import errorMapping from "@/utils/error";
 
 const TimeSlot = (props: {
   time: string;
@@ -47,7 +49,10 @@ const TimeSlot = (props: {
   );
 };
 
-export default function RoomBooking() {
+export default function RoomBooking(props: {
+  onError: (error: boolean, errorMessage: string | undefined) => void;
+  onSuccess: (success: boolean, successMessage: string) => void;
+}) {
   const [accessToken, setAccessToken] = useState<string | null>();
   const params = useParams<{ roomId: string }>();
   const [timeSlotList, setTimeSlotList] = useState([]);
@@ -55,12 +60,10 @@ export default function RoomBooking() {
   const [reservedTimeSlot, setReservedTimeSlot] = useState<string[]>([]);
 
   useEffect(() => {
-    if (typeof window != undefined) {
-      var token = localStorage.getItem("accessToken");
+    var token = getCookie("accessToken");
 
-      if (token) {
-        setAccessToken(token);
-      }
+    if (token) {
+      setAccessToken(token);
     }
   }, []);
 
@@ -134,6 +137,15 @@ export default function RoomBooking() {
       }),
     })
       .then((res) => res.json())
+      .then((res: { success: boolean; data?: any; message?: string }) => {
+        /* Data not exist in response => Booking failed */
+        if (!res.success) {
+          props.onError(true, errorMapping(res?.message));
+          return;
+        }
+
+        props.onSuccess(true, "Book the time slot successfully");
+      })
       .catch((err) => {
         console.log(err);
       });

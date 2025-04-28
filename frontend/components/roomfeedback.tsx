@@ -1,8 +1,13 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { getCookie } from "cookies-next/client";
+import errorMapping from "@/utils/error";
 
-export default function RoomFeedback() {
+export default function RoomFeedback(props: {
+  onError: (error: boolean, errorMessage: string | undefined) => void;
+  onSuccess: (success: boolean, successMessage: string) => void;
+}) {
   const params = useParams<{ roomId: string }>();
   const [accessToken, setAccessToken] = useState<string | null>();
   const [feedbackList, setFeedbackList] = useState([]);
@@ -33,13 +38,10 @@ export default function RoomFeedback() {
   }, [params?.roomId]);
 
   useEffect(() => {
-    if (typeof window != undefined) {
-      var token = localStorage.getItem("accessToken");
+    var token = getCookie("accessToken");
 
-      if (token) {
-        console.log(token);
-        setAccessToken(token);
-      }
+    if (token) {
+      setAccessToken(token);
     }
   }, []);
 
@@ -59,6 +61,12 @@ export default function RoomFeedback() {
     )
       .then((res) => {
         return res.json();
+      })
+      .then((res: { success: boolean; data?: any; message?: string }) => {
+        if (!res.success) {
+          props.onError(true, errorMapping(res?.message));
+          return;
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -81,7 +89,7 @@ export default function RoomFeedback() {
   };
 
   return (
-    <div className="mt-[20] mb-[20] h-fit flex flex-col p-4 shadow-xl rounded-lg bg-emerald-500 text-sm lg:ml-[20] lg:w-1/3 lg:mr-[20]">
+    <div className="mt-[20] mb-[20] h-fit flex flex-col p-4 shadow-xl rounded-lg bg-yellow-100 text-sm lg:ml-[20] lg:w-1/3 lg:mr-[20]">
       <div className="flex flex-col">
         <label htmlFor="feedback" className="text-xs mb-1 italic font-bold">
           Your feedback
@@ -104,7 +112,10 @@ export default function RoomFeedback() {
             date: string;
             content: string;
           }) => (
-            <div className="mt-[10] flex flex-col pt-2 pb-2 pr-3 pl-3 bg-teal-100 rounded-md">
+            <div
+              className="mt-[10] flex flex-col pt-2 pb-2 pr-3 pl-3 bg-gray-50 rounded-md"
+              key={feedback.id}
+            >
               <div className="flex flex-row text-xs">
                 <p className="w-1/2 text-left font-bold">
                   {feedback.studentName}

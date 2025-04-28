@@ -3,13 +3,18 @@ import "../app/globals.css";
 import Image from "next/image";
 import { Menu } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useGetCookie, useDeleteCookie } from "cookies-next";
 
 export default function Navbar() {
+  const router = useRouter();
+  const getCookie = useGetCookie();
+  const deleteCookie = useDeleteCookie();
   const [hidden, setHidden] = useState(true);
+  const [isLogin, setLogin] = useState(false);
 
   const handleScreenSize = () => {
     const width = window.innerWidth;
-    console.log(width);
     if (width < 1280) {
       setHidden(true);
       return;
@@ -17,6 +22,21 @@ export default function Navbar() {
     setHidden(false);
     return;
   };
+
+  const handleLogOut = () => {
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    console.log("Reload");
+    router.reload();
+  };
+
+  /* Check if user login */
+  useEffect(() => {
+    const accessToken = getCookie("accessToken");
+    if (accessToken) {
+      setLogin(true);
+    }
+  }, [getCookie]);
 
   /* Onload event to show or hide navbar items */
   useEffect(() => {
@@ -41,10 +61,10 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-slate-900 p-2 flex flex-wrap items-center xl:flex-row sm:flex-col fixed">
+    <nav className="fixed w-full bg-slate-900 p-2 flex flex-wrap items-center xl:flex-row sm:flex-col z-10">
       <div className="logo-container flex flex-row w-full xl:w-1/3">
         <div className="wrap-logo w-1/2">
-          <a href="/" className="w-fit">
+          <a href="/" className="flex max-w-fit">
             <Image
               src={`/logo.jpg`}
               alt="Logo"
@@ -87,12 +107,23 @@ export default function Navbar() {
           hidden ? "hidden" : ""
         }`}
       >
-        <a
-          className="ml-4 mr-4 mt-1 mb-1 cursor-pointer pt-2 pb-2 pl-4 pr-4 bg-white text-slate-950 rounded-lg hover:bg-yellow-400"
-          href="/login"
-        >
-          Login
-        </a>
+        {isLogin == false && (
+          <a
+            className="ml-4 mr-4 mt-1 mb-1 cursor-pointer pt-2 pb-2 pl-4 pr-4 bg-white text-slate-950 rounded-lg hover:bg-yellow-400"
+            href="/login"
+          >
+            Login
+          </a>
+        )}
+
+        {isLogin && (
+          <button
+            className="ml-4 mr-4 mt-1 mb-1 cursor-pointer pt-2 pb-2 pl-4 pr-4 bg-white text-slate-950 rounded-lg hover:bg-yellow-400"
+            onClick={handleLogOut}
+          >
+            Logout
+          </button>
+        )}
       </div>
     </nav>
   );
