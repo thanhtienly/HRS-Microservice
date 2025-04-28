@@ -35,7 +35,7 @@ const authorizedTokenMiddleware = (req, res, next) => {
         /* Access Token Expired */
         return res.status(401).json({
           success: false,
-          message: "Access Token expired, please refresh new access token",
+          message: "Access Token expired",
         });
       }
 

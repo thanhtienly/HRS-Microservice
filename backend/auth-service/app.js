@@ -25,6 +25,7 @@ const logger = require("./middlewares/logging.middleware");
 
 app.use(logger.initCorrelationId);
 app.use(logger.publishLog);
+
 app.use("/auth", validateRequestSource, userRoute);
 
 initDB()
