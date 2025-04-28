@@ -87,7 +87,7 @@ export default function SearchBox({
           onChange={updateSearchBuilding}
           defaultValue={""}
         >
-          <option value="" disabled></option>
+          <option value="" disabled className="hidden"></option>
           {ssaList.map((item: { id: string; building: string }) => (
             <option value={item.id} key={item.id}>
               Building {item.building}
@@ -110,7 +110,7 @@ export default function SearchBox({
           onChange={updateRoomType}
           defaultValue={""}
         >
-          <option value="" disabled></option>
+          <option value="" disabled className="hidden"></option>
           {roomTypeList.map((roomType: string) => (
             <option value={roomType} key={roomType}>
               {roomType}
