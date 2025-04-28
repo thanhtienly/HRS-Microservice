@@ -49,7 +49,9 @@ const publishLog = (req, res, next) => {
         process.env.RABBITMQ_LOG_ROUTE_KEY,
         JSON.stringify(log)
       );
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
 
     res.send = oldSend; // set function back to avoid the 'double-send'
     return res.send(data); // just call as normal with data
