@@ -3,7 +3,10 @@ const { validateQuery, validateBody } = require("../validation");
 const {
   getTimeSlotDTO,
   bookTimeSlotDTO,
+  checkInTimeSlotDTO,
   invitationDTO,
+  findParticipantDTO,
+  reservationIdDTO,
 } = require("../dto/booking.dto");
 const {
   getRoomListWithQueryDTO,
@@ -38,8 +41,20 @@ const validateBodyBookTimeSlotDTO = (req, res, next) => {
   return validateBody(bookTimeSlotDTO, req, res, next);
 };
 
+const validateBodyCheckInTimeSlotDTO = (req, res, next) => {
+  return validateBody(checkInTimeSlotDTO, req, res, next);
+};
+
 const validateBodyInvitationDTO = (req, res, next) => {
   return validateBody(invitationDTO, req, res, next);
+};
+
+const validateBodyFindParticipantDTO = (req, res, next) => {
+  return validateBody(findParticipantDTO, req, res, next);
+};
+
+const validateBodyReservationIdDTO = (req, res, next) => {
+  return validateBody(reservationIdDTO, req, res, next);
 };
 
 module.exports = {
@@ -48,5 +63,8 @@ module.exports = {
   validateQueryGetTimeSlotDTO,
   validateBodyCreateRoomFeedbackDTO,
   validateBodyBookTimeSlotDTO,
+  validateBodyCheckInTimeSlotDTO,
   validateBodyInvitationDTO,
+  validateBodyFindParticipantDTO,
+  validateBodyReservationIdDTO,
 };

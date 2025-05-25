@@ -4,11 +4,11 @@ services:
   auth-db:
     image: mysql:5.5
     container_name: auth-db
-    restart: always
     ports:
       - "3307:3306"
     expose:
       - 3306
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
       MYSQL_USER: "${MYSQL_USERNAME}"
@@ -23,7 +23,7 @@ services:
   auth-service:
     build: .
     container_name: auth-service
-    restart: unless-stopped
+    restart: always
     command: npm run start
     develop:
       watch:
@@ -39,7 +39,7 @@ services:
     env_file:
       - ./.env
     volumes:
-      - /app/node_modules/
+      - /usr/app/node_modules/
     depends_on:
       - auth-db
     networks:

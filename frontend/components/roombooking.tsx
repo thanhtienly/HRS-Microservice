@@ -52,6 +52,7 @@ const TimeSlot = (props: {
 export default function RoomBooking(props: {
   onError: (error: boolean, errorMessage: string | undefined) => void;
   onSuccess: (success: boolean, successMessage: string) => void;
+  onBook: (success: boolean) => void;
 }) {
   const [accessToken, setAccessToken] = useState<string | null>();
   const params = useParams<{ roomId: string }>();
@@ -89,6 +90,9 @@ export default function RoomBooking(props: {
           setTimeSlotList(res.data);
           return;
         }
+
+        props.onError(true, res?.message);
+        return;
       })
       .catch((err) => {
         console.log(err);
@@ -119,6 +123,7 @@ export default function RoomBooking(props: {
   };
 
   const handleBookAction = async (e: any) => {
+    console.log(reservedTimeSlot);
     e.preventDefault();
     if (!reservedDate || reservedTimeSlot.length == 0) {
       return;
@@ -141,16 +146,19 @@ export default function RoomBooking(props: {
         /* Data not exist in response => Booking failed */
         if (!res.success) {
           props.onError(true, errorMapping(res?.message));
+          props.onBook(false);
           return;
         }
 
         props.onSuccess(true, "Book the time slot successfully");
+        props.onBook(true);
+        setReservedTimeSlot([]);
+        fetchTimeSlot();
       })
       .catch((err) => {
         console.log(err);
+        props.onBook(false);
       });
-    setReservedTimeSlot([]);
-    await fetchTimeSlot();
   };
 
   return (

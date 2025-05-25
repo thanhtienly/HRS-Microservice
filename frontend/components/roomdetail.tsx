@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import "../app/globals.css";
 import { useParams } from "next/navigation";
 
-export default function RoomDetailCard() {
+export default function RoomDetailCard(props: {
+  isBookSuccess: boolean;
+  onRefresh: () => void;
+}) {
   const params = useParams<{ roomId: string }>();
   const [roomData, setRoomData] = useState<{
     id: string;
@@ -14,25 +17,41 @@ export default function RoomDetailCard() {
     floor: number;
     building: string;
   } | null>(null);
-  const [feedbackList, setFeedbackList] = useState([]);
   const [reservationCount, setReservationCount] = useState(0);
+  const [isUserBookSuccess, setBookSuccess] = useState(false);
 
+  const getRoomReservedCount = async () => {
+    return await fetch(
+      `${process.env.apiGatewayHost}/booking/total?roomId=${params?.roomId}`
+    )
+      .then((res) => res.json())
+      .then((res: { success: boolean; data: any; message: string }) => {
+        if (res.success) {
+          return res.data;
+        }
+      })
+      .catch((err) => {});
+  };
+
+  /* Handle success state from room booking component,
+    then update isUserBookSuccess value 
+  */
+  useEffect(() => {
+    if (props.isBookSuccess) {
+      setBookSuccess(props.isBookSuccess);
+      const timer = setTimeout(() => {
+        setBookSuccess(false);
+        props.onRefresh();
+      }, 1000);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [props.isBookSuccess]);
+
+  /* Handle onload to fetch total reservation */
   useEffect(() => {
     if (params?.roomId) {
-      const getRoomReservedCount = async () => {
-        return await fetch(
-          `${process.env.apiGatewayHost}/booking/total?roomId=${params?.roomId}`
-        )
-          .then((res) => res.json())
-          .then((res: { success: boolean; data: any; message: string }) => {
-            console.log;
-            if (res.success) {
-              return res.data;
-            }
-          })
-          .catch((err) => {});
-      };
-
       getRoomReservedCount()
         .then((data) => {
           setReservationCount(data);
@@ -42,6 +61,19 @@ export default function RoomDetailCard() {
         });
     }
   }, [params?.roomId]);
+
+  /* Handle user book successful, fetch new total reservation count */
+  useEffect(() => {
+    if (isUserBookSuccess && params?.roomId) {
+      getRoomReservedCount()
+        .then((data) => {
+          setReservationCount(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [isUserBookSuccess]);
 
   useEffect(() => {
     if (params?.roomId) {

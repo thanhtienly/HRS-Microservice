@@ -21,7 +21,7 @@ export default function SuccessNotification(props: {
   }, [props.duration]);
   return (
     <div
-      className={`w-[200] fixed flex flex-col text-black bg-green-500 rounded-md ${
+      className={`w-[200] fixed flex flex-col text-black bg-green-500 rounded-md border-l-10 border-green-700 z-200 ${
         isVisible
           ? "animate-fade-in top-[75] right-[20]"
           : "hidden top-[75] right-[0]"

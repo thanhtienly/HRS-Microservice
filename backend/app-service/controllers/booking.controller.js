@@ -3,18 +3,33 @@ const {
   getBookingHistoryByStudentId,
   findBookedTimeSlot,
   findOverlapTimeSlot,
+  findOverlapTimeSlotOfStudent,
   createReservation,
   findReservationDetailById,
   findAllReservationBySecret,
+  updateReservationState,
 } = require("../services/booking.service");
 const jwt = require("jsonwebtoken");
 const client = require("../services/client.service");
+const { createCheckIn } = require("../services/checkin.service");
 const { Reservation } = require("../models/Reservation");
+
 const {
   convertToUTC7Full,
   convertTimeStampToDate,
   convertTimestampToHHMM,
 } = require("../utils/date");
+
+const reservationState = {
+  booked: "Booked",
+  cancel: "Cancelled",
+  waiting: "Waiting",
+};
+
+const bookingHistoryCategory = {
+  upcoming: "incoming",
+  past: "past",
+};
 
 const getRoomReservedCount = async (req, res) => {
   const roomId = req.query?.roomId;
@@ -40,6 +55,7 @@ const getRoomReservedCount = async (req, res) => {
 
 const getBookingHistory = async (req, res) => {
   var user = req.headers?.user;
+  const category = req.query?.category || bookingHistoryCategory.upcoming;
 
   /* This request don't have auth info */
   if (!user) {
@@ -55,17 +71,33 @@ const getBookingHistory = async (req, res) => {
     studentId: user.studentId,
   });
 
+  if (category == bookingHistoryCategory.upcoming) {
+    /* Get upcoming booking */
+    reservationList = reservationList.filter(
+      (reservation) =>
+        reservation.state == reservationState.booked &&
+        reservation.to > new Date().getTime()
+    );
+  } else {
+    reservationList = reservationList.filter(
+      (reservation) =>
+        reservation.state != reservationState.booked ||
+        reservation.to < new Date().getTime()
+    );
+  }
+
   /* Convert timestamp type of number to date with format YYYY-MM-DD hh:mm:ss */
   reservationList = reservationList.map((reservation) => {
     return {
       id: reservation.id,
       roomId: reservation.roomId,
       studentId: reservation.studentId,
-      from: convertToUTC7Full(reservation.from),
-      to: convertToUTC7Full(reservation.to),
+      date: convertTimeStampToDate(reservation.from),
+      from: convertTimestampToHHMM(reservation.from),
+      to: convertTimestampToHHMM(reservation.to),
       reservedAt: convertToUTC7Full(reservation.reservedAt),
-      state: reservation.state,
       secret: reservation.secret,
+      state: reservation.state,
       roomName: reservation.roomName,
       roomCapacity: reservation.roomCapacity,
       roomType: reservation.roomType,
@@ -80,7 +112,6 @@ const getBookingHistory = async (req, res) => {
 };
 
 const getTimeSlot = async (req, res) => {
-  console.log("App service receive request");
   const { date, roomId } = req.query;
 
   const TIME_SLOT_IN_MINUTE = parseInt(process.env.TIME_SLOT_IN_MINUTE);
@@ -88,9 +119,15 @@ const getTimeSlot = async (req, res) => {
   const SERVICE_END_HOUR = parseInt(process.env.SERVICE_END_HOUR);
   const SERVICE_TIMEZONE = parseInt(process.env.SERVICE_TIMEZONE);
 
+  var startOfToday = new Date(
+    new Date().setHours(SERVICE_START_HOUR - SERVICE_TIMEZONE, 0, 0, 0)
+  );
+  var startOfSearchDay = new Date(
+    new Date(date).setUTCHours(SERVICE_START_HOUR - SERVICE_TIMEZONE, 0, 0, 0)
+  ).getTime();
+
   /* Check if the search date is not before today  */
-  var startOfToday = new Date(new Date().setHours(SERVICE_START_HOUR, 0, 0));
-  if (new Date(date).getTime() < startOfToday.getTime()) {
+  if (startOfSearchDay < startOfToday.getTime()) {
     return res.status(400).json({
       success: false,
       message: "Search date can't be yesterday",
@@ -99,10 +136,6 @@ const getTimeSlot = async (req, res) => {
 
   var timeSlotList = [];
 
-  var startOfSearchDay = new Date(
-    new Date(date).setUTCHours(SERVICE_START_HOUR - SERVICE_TIMEZONE, 0, 0)
-  ).getTime();
-  console.log(startOfSearchDay);
   for (let i = SERVICE_START_HOUR; i <= SERVICE_END_HOUR; i++) {
     var timeSlotIndex = i - SERVICE_START_HOUR;
 
@@ -160,8 +193,8 @@ const bookTimeSlot = async (req, res) => {
     var startTime = new Date(`${date}T${timeSlot[i][0]}:00+07:00`).getTime();
     var endTime = new Date(`${date}T${timeSlot[i][1]}:00+07:00`).getTime();
 
-    /* Invalid startTime constraint */
-    if (startTime < new Date().getTime()) {
+    /* Current time is later than endTime */
+    if (endTime <= new Date().getTime()) {
       return res.status(400).json({
         success: false,
         message: `Invalid datetime`,
@@ -193,7 +226,7 @@ const bookTimeSlot = async (req, res) => {
     });
 
     /* This booking overlaps with exist booking */
-    if (overLapBooked.length != 0) {
+    if (overLapBooked) {
       return res.status(400).json({
         success: false,
         message: `Overlap booking`,
@@ -236,6 +269,94 @@ const bookTimeSlot = async (req, res) => {
       message: "Internal server error when creating the booking",
     });
   }
+};
+
+const checkInTimeSlot = async (req, res) => {
+  var user = req.headers?.user;
+  user = JSON.parse(user);
+  var { date, roomId, timeSlot } = req.body;
+
+  /* Split time slot from format: "08:00 - 09:00" to ["08:00", "09:00"]  */
+  timeSlot = timeSlot.split(/\s-\s/);
+
+  var startTime = new Date(`${date}T${timeSlot[0]}:00+07:00`).getTime();
+  var endTime = new Date(`${date}T${timeSlot[1]}:00+07:00`).getTime();
+
+  const reservation = await findOverlapTimeSlotOfStudent({
+    roomId: roomId,
+    startTime: startTime,
+    endTime: endTime,
+    studentId: user.studentId,
+  });
+
+  if (!reservation) {
+    return res.status(404).json({
+      success: false,
+      message: "Reservation not found",
+    });
+  }
+
+  if (reservation.state == "Cancelled") {
+    return res.status(400).json({
+      success: false,
+      message: "Your reservation have been cancelled",
+    });
+  }
+
+  if (reservation.state == reservationState.waiting) {
+    return res.status(400).json({
+      success: false,
+      message: "Please accept invitation, then check-in again",
+    });
+  }
+
+  const checkedIn = await createCheckIn({
+    roomId: reservation.roomId,
+    reservationId: reservation.id,
+    studentId: user.studentId,
+  });
+
+  res.json({
+    success: true,
+    data: checkedIn,
+  });
+};
+
+const findParticipants = async (req, res) => {
+  const { secret } = req.body;
+
+  let participants = [];
+  const reservationList = await findAllReservationBySecret(secret);
+
+  for (let i = 0; i < reservationList.length; i++) {
+    /* Call Auth Service to check if any student with this email */
+    const response = await client.post(
+      `${process.env.AUTH_SERVICE_HOST}/auth/student/find-by-student-id`,
+      {
+        studentId: reservationList[i].studentId,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "correlation-id": req.headers["correlation-id"],
+        },
+      }
+    );
+
+    /* Student exist */
+    if (response.success) {
+      const student = response.data;
+      participants.push({
+        ...student,
+        state: reservationList[i].state,
+      });
+    }
+  }
+
+  res.json({
+    success: true,
+    data: participants,
+  });
 };
 
 const createInvitation = async (req, res) => {
@@ -289,13 +410,38 @@ const createInvitation = async (req, res) => {
     });
   }
 
+  roomReservationList = roomReservationList.map((item) => {
+    return item.studentId;
+  });
+
+  var studentIdList = participants.map((item) => item.studentId);
+
+  /* Remove duplicate invitation with exist reservation */
+  studentIdList = studentIdList.filter(
+    (studentId) => roomReservationList.indexOf(studentId) == -1
+  );
+
+  studentIdList.forEach(async (studentId) => {
+    await createReservation({
+      roomId: reservation.roomId,
+      studentId: studentId,
+      startTime: reservation.from,
+      endTime: reservation.to,
+      secret: reservation.secret,
+      state: reservationState.waiting,
+    });
+  });
+
   const date = convertTimeStampToDate(reservation["from"]);
   const startTime = convertTimestampToHHMM(reservation["from"]);
   const endTime = convertTimestampToHHMM(reservation["to"]);
   const inviterName = user.firstName + " " + user.lastName;
 
+  /* Select only new participants to send email invitation */
   var invitation = {
-    participants: participants,
+    participants: participants
+      .filter((item) => studentIdList.indexOf(item.studentId) != -1)
+      .map((item) => item.email),
     roomName: reservation.roomName,
     roomType: reservation.roomType,
     secret: reservation.secret,
@@ -366,46 +512,39 @@ const acceptInvitation = async (req, res) => {
     }
 
     /* Check if this student accept the invitation before or not */
-    var isJoin = false;
 
-    reservationList.forEach((reservation) => {
-      if (reservation.studentId == student.studentId) {
-        isJoin = true;
-      }
-    });
-
-    if (isJoin) {
-      return res.status(403).json({
-        success: false,
-        message: "Duplicate joining",
-      });
-    }
-
-    const reservationDetail = await findReservationDetailById(
-      reservationList[0]["id"]
+    const studentReservation = reservationList.filter(
+      (reservation) => reservation.studentId == student.studentId
     );
-    const roomCapacity = reservationDetail.roomCapacity;
 
-    /* Room is full */
-    if (reservationList.length == roomCapacity) {
-      return res.status(400).json({
+    if (studentReservation.length == 0) {
+      return res.status(404).json({
         success: false,
-        message: "The room's full",
+        message: "Invitation not found",
       });
     }
 
     try {
-      const newReservation = await createReservation({
-        roomId: reservationDetail.roomId,
-        studentId: student.studentId,
-        startTime: reservationDetail.from,
-        endTime: reservationDetail.to,
-        secret: reservationDetail.secret,
+      const newReservation = await updateReservationState({
+        id: studentReservation[0].id,
+        newState: reservationState.booked,
       });
+
+      const reservationDetail = await findReservationDetailById(
+        newReservation.id
+      );
 
       return res.json({
         success: true,
-        data: newReservation,
+        data: {
+          date: convertTimeStampToDate(reservationDetail.from),
+          startTime: convertTimestampToHHMM(reservationDetail.from),
+          endTime: convertTimestampToHHMM(reservationDetail.to),
+          roomName: reservationDetail.roomName,
+          roomCapacity: reservationDetail.roomCapacity,
+          roomType: reservationDetail.roomType,
+          roomFloor: reservationDetail.roomFloor,
+        },
       });
     } catch (error) {
       res.status(500).json({
@@ -416,11 +555,60 @@ const acceptInvitation = async (req, res) => {
   });
 };
 
+const cancelReservation = async (req, res) => {
+  const { reservationId } = req.body;
+
+  var reservation = await findReservationDetailById(reservationId);
+
+  if (!reservation) {
+    return res.status(404).json({
+      success: false,
+      message: "Reservation not found",
+    });
+  }
+
+  var user = req.headers?.user;
+  user = JSON.parse(user);
+  const studentId = user.studentId;
+
+  console.log(studentId);
+  console.log(reservation);
+
+  console.log(reservation.studentId.length);
+  console.log(studentId.length);
+
+  if (reservation.studentId.normalize("NFC") != studentId.normalize("NFC")) {
+    return res.status(400).json({
+      success: false,
+      message: "Reservation not belong to you",
+    });
+  }
+
+  try {
+    reservation = await updateReservationState({
+      id: reservation.id,
+      newState: reservationState.cancel,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+
+  res.json({
+    success: true,
+    data: reservation,
+  });
+};
+
 module.exports = {
   getRoomReservedCount,
   getBookingHistory,
   getTimeSlot,
   bookTimeSlot,
+  checkInTimeSlot,
+  findParticipants,
   createInvitation,
   acceptInvitation,
+  cancelReservation,
 };

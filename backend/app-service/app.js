@@ -38,9 +38,11 @@ app.use("/room", validateRequestSource, roomRoute);
 
 initDB()
   .then(() => {
-    sequelize.sync({ force: true }).then(async () => {
+    sequelize.sync({ alter: true }).then(async () => {
       console.log("Connected to MySQL");
-      await seed();
+      try {
+        await seed();
+      } catch (error) {}
 
       app.listen(PORT, () => {
         console.log(`App service's listening on port ${PORT}`);

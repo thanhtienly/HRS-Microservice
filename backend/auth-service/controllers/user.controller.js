@@ -164,9 +164,19 @@ const searchStudentByStudentId = async (req, res) => {
     });
   }
 
+  delete student["password"];
+
   res.json({
     success: true,
-    data: student,
+    data: {
+      email: student.email,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      gender: student.gender,
+      isVerify: student.isVerify,
+      studentId: student.studentId,
+      verifiedAt: student.verifiedAt,
+    },
   });
 };
 

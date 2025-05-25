@@ -10,6 +10,7 @@ services:
       - "9200:9200"
     networks:
       - hrsApp
+    restart: always
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.17.3
@@ -21,7 +22,7 @@ services:
       - hrsApp
     depends_on:
       - elasticsearch
-    restart: on-failure
+    restart: always
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.3
@@ -33,7 +34,7 @@ services:
       - hrsApp
     depends_on:
       - elasticsearch
-    restart: on-failure
+    restart: always
 
 networks:
   hrsApp:

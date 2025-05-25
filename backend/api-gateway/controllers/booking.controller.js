@@ -7,6 +7,8 @@ const RABBITMQ_EXCHANGE = process.env.RABBITMQ_EXCHANGE;
 const RABBITMQ_INVITATION_QUEUE = process.env.RABBITMQ_INVITATION_QUEUE;
 const RABBITMQ_INVITATION_ROUTE_KEY = process.env.RABBITMQ_INVITATION_ROUTE_KEY;
 
+const FRONT_END_HOST = process.env.FRONT_END_HOST;
+
 const handleGetRoomReservedCount = async (req, res) => {
   var urlPath = req.originalUrl;
 
@@ -87,6 +89,54 @@ const handleBookTimeSlot = async (req, res) => {
   });
 };
 
+const handleCheckInTimeSlot = async (req, res) => {
+  const user = req["user"];
+  var urlPath = req.originalUrl;
+
+  const APP_SERVICE_HOST = process.env.APP_SERVICE_HOST;
+  const response = await client.post(
+    `${APP_SERVICE_HOST}${urlPath}`,
+    { ...req.body },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        user: JSON.stringify(user),
+        "correlation-id": req.headers["correlation-id"],
+      },
+    }
+  );
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
+const handleFindParticipants = async (req, res) => {
+  const user = req["user"];
+  var urlPath = req.originalUrl;
+
+  const APP_SERVICE_HOST = process.env.APP_SERVICE_HOST;
+  const response = await client.post(
+    `${APP_SERVICE_HOST}${urlPath}`,
+    { ...req.body },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        user: JSON.stringify(user),
+        "correlation-id": req.headers["correlation-id"],
+      },
+    }
+  );
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
 const handleCreateInvitation = async (req, res) => {
   const user = req["user"];
   var urlPath = req.originalUrl;
@@ -136,7 +186,7 @@ const handleCreateInvitation = async (req, res) => {
         date: invitation.date,
         startTime: invitation.startTime,
         endTime: invitation.endTime,
-        invitationURL: `${process.env.API_GATEWAY_HOST}/booking/invite/verify?token=${token}`,
+        invitationURL: `${FRONT_END_HOST}/room/join?token=${token}`,
       })
     );
   });
@@ -166,11 +216,38 @@ const handleAcceptInvitation = async (req, res) => {
   });
 };
 
+const handleCancelBooking = async (req, res) => {
+  const user = req["user"];
+  var urlPath = req.originalUrl;
+
+  const APP_SERVICE_HOST = process.env.APP_SERVICE_HOST;
+  const response = await client.post(
+    `${APP_SERVICE_HOST}${urlPath}`,
+    { ...req.body },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        user: JSON.stringify(user),
+        "correlation-id": req.headers["correlation-id"],
+      },
+    }
+  );
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
 module.exports = {
   handleGetRoomReservedCount,
   handleGetBookingHistory,
   handleGetTimeSlot,
   handleBookTimeSlot,
+  handleCheckInTimeSlot,
+  handleFindParticipants,
   handleCreateInvitation,
   handleAcceptInvitation,
+  handleCancelBooking,
 };

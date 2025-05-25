@@ -4,12 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import ErrorNotification from "@/components/notification/error";
 import SuccessNotification from "@/components/notification/success";
 import LoadingPage from "@/components/loading";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter } from "next/router";
 import { getCookie, setCookie } from "cookies-next/client";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams?.get("redirect");
   const [isLoading, setLoading] = useState(true);
 
   /* Use for error notification component */
@@ -22,6 +26,15 @@ export default function LoginPage() {
 
   const [isLoginFocus, setLoginFocus] = useState(true);
   const [isSignupFocus, setSignupFocus] = useState(false);
+
+  /* Use to show/hide password input of login form */
+  const [isShowLoginPassword, setShowLoginPassword] = useState(false);
+  const [loginPasswordInputType, setLoginPasswordInputType] =
+    useState("password");
+
+  const [isShowSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [signUpPasswordInputType, setSignUpPasswordInputType] =
+    useState("password");
 
   /* Use to clear sign up input */
   const emailRef = useRef<HTMLInputElement>(null);
@@ -41,7 +54,29 @@ export default function LoginPage() {
       return;
     }
     setLoading(false);
-  }, []);
+  }, [router]);
+
+  /* Use to catch show/hide password of login form click event */
+  useEffect(() => {
+    if (isShowLoginPassword) {
+      setLoginPasswordInputType("text");
+      return;
+    }
+
+    setLoginPasswordInputType("password");
+    return;
+  }, [isShowLoginPassword]);
+
+  /* Use to catch show/hide password of sign up form click event */
+  useEffect(() => {
+    if (isShowSignUpPassword) {
+      setSignUpPasswordInputType("text");
+      return;
+    }
+
+    setSignUpPasswordInputType("password");
+    return;
+  }, [isShowSignUpPassword]);
 
   const updateErrorState = (isVisible: boolean) => {
     setError(isVisible);
@@ -57,6 +92,14 @@ export default function LoginPage() {
         ref.current.value = "";
       }
     });
+  };
+
+  const toogleShowPassword = () => {
+    setShowLoginPassword(!isShowLoginPassword);
+  };
+
+  const toogleShowSignUpPassword = () => {
+    setShowSignUpPassword(!isShowSignUpPassword);
   };
 
   const handleSignUpSubmit = async (e: any) => {
@@ -118,6 +161,7 @@ export default function LoginPage() {
 
   const handleLoginSubmit = async (e: any) => {
     e.preventDefault();
+
     const formElement = e.target;
     const formData = new FormData(formElement);
 
@@ -153,6 +197,11 @@ export default function LoginPage() {
           }
           setCookie("accessToken", res.data.accessToken);
           setCookie("refreshToken", res.data.refreshToken);
+          if (redirectTo) {
+            router.push(redirectTo);
+            return;
+          }
+
           router.push("/");
         }
       )
@@ -257,12 +306,28 @@ export default function LoginPage() {
                 >
                   Password
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="****************"
-                  className="mt-1 pt-1 pb-1 pl-2 pr-2 rounded-md outline-none border-[1] hover:border-blue-500 bg-white"
-                />
+                <span className="mt-1 w-full flex flex-row rounded-md outline-none border-[1] hover:border-blue-500 bg-white">
+                  <input
+                    type={loginPasswordInputType}
+                    name="password"
+                    placeholder="****************"
+                    className="w-full pt-1 pb-1 pl-2 pr-2 outline-none"
+                  />
+                  <span
+                    className="w-fit flex items-center justify-center pr-1 pl-1 cursor-pointer z-10"
+                    onClick={toogleShowPassword}
+                  >
+                    {isShowLoginPassword && (
+                      <VisibilityOff
+                        fontSize="small"
+                        sx={{ color: "#020618" }}
+                      />
+                    )}
+                    {!isShowLoginPassword && (
+                      <Visibility fontSize="small" sx={{ color: "#020618" }} />
+                    )}
+                  </span>
+                </span>
               </div>
               <div className="mt-3 flex flex-col">
                 <button
@@ -308,14 +373,31 @@ export default function LoginPage() {
                 >
                   Password
                 </label>
-                <input
-                  ref={passwordRef}
-                  type="password"
-                  name="password"
-                  placeholder="****************"
-                  className="mt-1 pt-1 pb-1 pl-2 pr-2 rounded-md outline-none border-[1] hover:border-blue-500 bg-white"
-                />
+                <span className="mt-1 w-full flex flex-row rounded-md outline-none border-[1] hover:border-blue-500 bg-white">
+                  <input
+                    ref={passwordRef}
+                    type={signUpPasswordInputType}
+                    name="password"
+                    placeholder="****************"
+                    className="w-full pt-1 pb-1 pl-2 pr-2 outline-none"
+                  />
+                  <span
+                    className="w-fit flex items-center justify-center pr-1 pl-1 cursor-pointer z-10"
+                    onClick={toogleShowSignUpPassword}
+                  >
+                    {isShowSignUpPassword && (
+                      <VisibilityOff
+                        fontSize="small"
+                        sx={{ color: "#020618" }}
+                      />
+                    )}
+                    {!isShowSignUpPassword && (
+                      <Visibility fontSize="small" sx={{ color: "#020618" }} />
+                    )}
+                  </span>
+                </span>
               </div>
+
               <div className="mt-2 flex flex-col">
                 <label
                   htmlFor="confirmPassword"
@@ -323,13 +405,15 @@ export default function LoginPage() {
                 >
                   Confirm password
                 </label>
-                <input
-                  ref={confirmPasswordRef}
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="****************"
-                  className="mt-1 pt-1 pb-1 pl-2 pr-2 rounded-md outline-none border-[1] hover:border-blue-500 bg-white"
-                />
+                <span className="mt-1 w-full flex flex-row rounded-md outline-none border-[1] hover:border-blue-500 bg-white">
+                  <input
+                    ref={confirmPasswordRef}
+                    type={signUpPasswordInputType}
+                    name="confirmPassword"
+                    placeholder="****************"
+                    className="w-full pt-1 pb-1 pl-2 pr-2 outline-none"
+                  />
+                </span>
               </div>
               <div className="mt-2 flex flex-col">
                 <label
