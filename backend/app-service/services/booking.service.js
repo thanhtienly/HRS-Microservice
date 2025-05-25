@@ -1,7 +1,7 @@
 const { Reservation } = require("../models/Reservation");
 const { Room } = require("../models/Room");
 const { SelfStudyArea } = require("../models/SelfStudyArea");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 const { v4: uuidv4 } = require("uuid");
 const { generateKeySync } = require("crypto");
 
@@ -76,8 +76,16 @@ const getBookingHistoryByStudentId = async ({ studentId }) => {
   return reservationList;
 };
 const findBookedTimeSlot = async ({ roomId, date }) => {
-  var startOfSearchDate = new Date(new Date(date).setHours(0, 0, 0)).getTime();
-  var endOfSearchDate = new Date(new Date(date).setHours(23, 59, 59)).getTime();
+  const SERVICE_START_HOUR = parseInt(process.env.SERVICE_START_HOUR);
+  const SERVICE_END_HOUR = parseInt(process.env.SERVICE_END_HOUR);
+  const SERVICE_TIMEZONE = parseInt(process.env.SERVICE_TIMEZONE);
+
+  var startOfSearchDate = new Date(
+    new Date(date).setUTCHours(SERVICE_START_HOUR - SERVICE_TIMEZONE, 0, 0)
+  ).getTime();
+  var endOfSearchDate = new Date(
+    new Date(date).setUTCHours(SERVICE_END_HOUR - SERVICE_TIMEZONE, 0, 0)
+  ).getTime();
 
   return await Reservation.findAll({
     where: {
@@ -92,7 +100,7 @@ const findBookedTimeSlot = async ({ roomId, date }) => {
           },
         },
         {
-          to: {
+          from: {
             [Op.lte]: endOfSearchDate,
           },
         },
@@ -103,9 +111,84 @@ const findBookedTimeSlot = async ({ roomId, date }) => {
   });
 };
 
+const findOverlapTimeSlotOfStudent = async ({
+  roomId,
+  startTime,
+  endTime,
+  studentId,
+}) => {
+  /* Note that: (08:00 -> 09:00) is not overlap with (09:00 -> 10:00) */
+  return await Reservation.findOne({
+    where: {
+      [Op.and]: [
+        { roomId },
+        { studentId },
+        {
+          [Op.or]: [
+            {
+              /*
+               * Exist reservation (08:00 -> 09:00), new booking (07:30 -> ...)
+               * startTime of exist in (startTime -> endTime) of new booking -> reject
+               */
+              [Op.and]: [
+                {
+                  from: {
+                    [Op.gte]: startTime,
+                  },
+                },
+                {
+                  from: {
+                    [Op.lt]: endTime,
+                  },
+                },
+              ],
+            },
+            {
+              /*
+               * Exist reservation (08:00 -> 09:00), new booking (08:30 -> ...)
+               * endTime of exist in (startTime -> endTime) of new booking -> reject
+               */
+              [Op.and]: [
+                {
+                  to: {
+                    [Op.gt]: startTime,
+                  },
+                },
+                {
+                  to: {
+                    [Op.lte]: endTime,
+                  },
+                },
+              ],
+            },
+            {
+              /*
+               * Exist reservation (08:00 -> 09:00), new booking (07:30 -> 09:30)
+               * exist reservation range is subRange of new booking range -> reject
+               */
+              [Op.and]: [
+                {
+                  from: {
+                    [Op.lte]: startTime,
+                  },
+                },
+                {
+                  to: {
+                    [Op.gte]: endTime,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  });
+};
+
 const findOverlapTimeSlot = async ({ roomId, startTime, endTime }) => {
   /* Note that: (08:00 -> 09:00) is not overlap with (09:00 -> 10:00) */
-  return await Reservation.findAll({
+  return await Reservation.findOne({
     where: {
       [Op.and]: [
         { roomId },
@@ -172,7 +255,6 @@ const findOverlapTimeSlot = async ({ roomId, startTime, endTime }) => {
         },
       ],
     },
-    limit: 1,
   });
 };
 
@@ -182,6 +264,7 @@ const createReservation = async ({
   startTime,
   endTime,
   secret,
+  state = "Booked",
 }) => {
   var reservation = await Reservation.create({
     id: uuidv4(),
@@ -197,7 +280,7 @@ const createReservation = async ({
       })
         .export()
         .toString("hex"),
-    state: "Booked",
+    state: state,
   });
   return reservation;
 };
@@ -210,11 +293,29 @@ const findAllReservationBySecret = async (secret) => {
   });
 };
 
+const updateReservationState = async ({ id, newState }) => {
+  await Reservation.update(
+    { state: newState },
+    {
+      where: {
+        id,
+      },
+    }
+  );
+  return await Reservation.findOne({
+    where: {
+      id,
+    },
+  });
+};
+
 module.exports = {
   findReservationDetailById,
   getBookingHistoryByStudentId,
   findBookedTimeSlot,
   findOverlapTimeSlot,
+  findOverlapTimeSlotOfStudent,
   createReservation,
   findAllReservationBySecret,
+  updateReservationState,
 };

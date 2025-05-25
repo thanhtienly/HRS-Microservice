@@ -61,7 +61,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed w-full bg-slate-900 p-2 flex flex-wrap items-center xl:flex-row sm:flex-col z-10">
+    <nav className="fixed w-full bg-slate-900 p-2 flex flex-wrap items-center xl:flex-row sm:flex-col z-100">
       <div className="logo-container flex flex-row w-full xl:w-1/3">
         <div className="wrap-logo w-1/2">
           <a href="/" className="flex max-w-fit">

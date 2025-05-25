@@ -13,17 +13,13 @@ const CheckIn = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
+    reservationId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
     studentId: {
       type: DataTypes.CHAR(10),
-      allowNull: true,
-    },
-    managerId: {
-      type: DataTypes.CHAR(10),
-      allowNull: true,
-    },
-    staffId: {
-      type: DataTypes.CHAR(10),
-      allowNull: true,
+      allowNull: false,
     },
     checkedInAt: {
       type: DataTypes.BIGINT,

@@ -30,7 +30,7 @@ app.use("/auth", validateRequestSource, userRoute);
 
 initDB()
   .then(() => {
-    sequelize.sync({ force: true }).then(async () => {
+    sequelize.sync().then(async () => {
       console.log("Connected to MySQL");
 
       app.listen(PORT, () => {

@@ -24,7 +24,7 @@ services:
   mail-service:
     build: .
     container_name: mail-service
-    restart: unless-stopped
+    restart: always
     command: npm run start
     develop:
       watch:

@@ -16,11 +16,26 @@ router.get(
 );
 
 router.get("/time-slot", bookingController.handleGetTimeSlot);
+
 router.post(
   "/time-slot",
   authorizedTokenMiddleware,
   isStudentMiddleware,
   bookingController.handleBookTimeSlot
+);
+
+router.post(
+  "/time-slot/check-in",
+  authorizedTokenMiddleware,
+  isStudentMiddleware,
+  bookingController.handleCheckInTimeSlot
+);
+
+router.post(
+  "/participants",
+  authorizedTokenMiddleware,
+  isStudentMiddleware,
+  bookingController.handleFindParticipants
 );
 
 router.post(
@@ -31,5 +46,12 @@ router.post(
 );
 
 router.get("/invite/verify", bookingController.handleAcceptInvitation);
+
+router.post(
+  "/cancel",
+  authorizedTokenMiddleware,
+  isStudentMiddleware,
+  bookingController.handleCancelBooking
+);
 
 module.exports = router;

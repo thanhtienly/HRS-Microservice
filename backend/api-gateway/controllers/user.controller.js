@@ -8,7 +8,7 @@ const RABBITMQ_VERIFY_QUEUE = process.env.RABBITMQ_VERIFY_QUEUE;
 const RABBITMQ_VERIFY_ROUTE_KEY = process.env.RABBITMQ_VERIFY_ROUTE_KEY;
 
 const AUTH_SERVICE_HOST = process.env.AUTH_SERVICE_HOST;
-const API_GATEWAY_HOST = process.env.API_GATEWAY_HOST;
+const FRONT_END_HOST = process.env.FRONT_END_HOST;
 
 const handleSignUpStudent = async (req, res) => {
   var urlPath = req.originalUrl;
@@ -37,7 +37,7 @@ const handleSignUpStudent = async (req, res) => {
         email: response.data.email,
         firstName: response.data.firstName,
         lastName: response.data.lastName,
-        verifyURL: `${API_GATEWAY_HOST}/auth/student/verify?token=${verifyToken}`,
+        verifyURL: `${FRONT_END_HOST}/users/verify?token=${verifyToken}`,
       })
     );
   }
@@ -86,8 +86,31 @@ const handleLoginStudent = async (req, res) => {
   });
 };
 
+const handleSearchStudentByStudentId = async (req, res) => {
+  var urlPath = req.originalUrl;
+  var response = await client.post(
+    `${AUTH_SERVICE_HOST}${urlPath}`,
+    {
+      ...req.body,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "correlation-id": req.headers["correlation-id"],
+      },
+    }
+  );
+
+  res.status(response.status).json({
+    success: response.success,
+    data: response?.data,
+    message: response?.message,
+  });
+};
+
 module.exports = {
   handleSignUpStudent,
   handleVerifyStudent,
   handleLoginStudent,
+  handleSearchStudentByStudentId,
 };

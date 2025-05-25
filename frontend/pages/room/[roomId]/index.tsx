@@ -14,6 +14,15 @@ export default function RoomDetailPage() {
   /* Use for success notification component */
   const [isSuccess, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | undefined>("");
+  const [isBookSuccess, setBookSuccess] = useState(false);
+
+  const clearBookSuccessState = () => {
+    setBookSuccess(false);
+  };
+
+  const updateIsBookSuccess = (success: boolean) => {
+    setBookSuccess(success);
+  };
 
   const updateErrorState = (isVisible: boolean) => {
     setError(isVisible);
@@ -54,9 +63,16 @@ export default function RoomDetailPage() {
       <div className="w-full lg:h-screen lg:overflow-hidden">
         <Navbar />
         <div className="w-full lg:h-screen flex flex-col lg:flex-row pt-[80] pb-[80] pl-[20] pr-[20]">
-          <RoomDetailCard />
+          <RoomDetailCard
+            isBookSuccess={isBookSuccess}
+            onRefresh={clearBookSuccessState}
+          />
           <div className="w-full lg:h-screen lg:overflow-scroll lg:pl-[50] flex flex-col lg:flex-row">
-            <RoomBooking onError={updateError} onSuccess={updateSuccess} />
+            <RoomBooking
+              onBook={updateIsBookSuccess}
+              onError={updateError}
+              onSuccess={updateSuccess}
+            />
             <RoomFeedback onError={updateError} onSuccess={updateSuccess} />
           </div>
         </div>

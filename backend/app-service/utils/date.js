@@ -5,7 +5,7 @@ const convertToUTC7Full = (timestamp) => {
 };
 
 const convertTimeStampToDate = (timestamp) => {
-  return moment.tz(timestamp, "Asia/Ho_Chi_Minh").format("DD-MM-YYYY");
+  return moment.tz(timestamp, "Asia/Ho_Chi_Minh").format("YYYY-MM-DD");
 };
 
 const convertTimestampToHHMM = (timestamp) => {

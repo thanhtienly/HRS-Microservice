@@ -8,6 +8,7 @@ const validate = (schema, data) => {
 };
 
 const getErrorMessage = (details) => {
+  console.log(details);
   var messages = details.map((item) => item.message);
 
   /* Show first error message */

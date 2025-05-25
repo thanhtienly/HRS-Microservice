@@ -7,7 +7,7 @@ const cors = require("cors");
 
 app.use(
   cors({
-    origin: process.env.FRONT_END_HOST,
+    origin: "*",
   })
 );
 app.use(express.json());

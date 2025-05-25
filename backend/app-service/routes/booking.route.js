@@ -4,6 +4,9 @@ const {
   validateQueryGetTimeSlotDTO,
   validateBodyBookTimeSlotDTO,
   validateBodyInvitationDTO,
+  validateBodyCheckInTimeSlotDTO,
+  validateBodyFindParticipantDTO,
+  validateBodyReservationIdDTO,
 } = require("../middlewares/validation");
 const router = Router();
 
@@ -16,10 +19,23 @@ router.get(
   validateQueryGetTimeSlotDTO,
   bookingController.getTimeSlot
 );
+
 router.post(
   "/time-slot",
   validateBodyBookTimeSlotDTO,
   bookingController.bookTimeSlot
+);
+
+router.post(
+  "/time-slot/check-in",
+  validateBodyCheckInTimeSlotDTO,
+  bookingController.checkInTimeSlot
+);
+
+router.post(
+  "/participants",
+  validateBodyFindParticipantDTO,
+  bookingController.findParticipants
 );
 
 router.post(
@@ -29,5 +45,11 @@ router.post(
 );
 
 router.get("/invite/verify", bookingController.acceptInvitation);
+
+router.post(
+  "/cancel",
+  validateBodyReservationIdDTO,
+  bookingController.cancelReservation
+);
 
 module.exports = router;
