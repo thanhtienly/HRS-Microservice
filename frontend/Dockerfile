@@ -1,18 +1,23 @@
-# Stage 1: Build the application
-FROM node:alpine AS builder
-WORKDIR /usr/app
+# Use an official Node.js runtime as a parent image
+FROM node:18-alpine
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
+
+# Copy the rest of the application code
 COPY . .
+
+# Build the Next.js app
 RUN npm run build
 
-# Stage 2: Run the application
-FROM node:alpine
-WORKDIR /usr/app
-COPY --from=builder /usr/app/.next ./.next
-COPY --from=builder /usr/app/public ./public
-COPY --from=builder /usr/app/package.json ./package.json
-RUN npm install --production
-
+# Expose the port that the Next.js app will run on
 EXPOSE 3000
+
+# Start the Next.js app
 CMD ["npm", "start"]

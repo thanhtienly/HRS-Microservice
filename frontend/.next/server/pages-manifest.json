@@ -1,0 +1,14 @@
+{
+  "/_error": "pages/_error.js",
+  "/_app": "pages/_app.js",
+  "/booking-history": "pages/booking-history.html",
+  "/": "pages/index.html",
+  "/room": "pages/room.html",
+  "/login": "pages/login.html",
+  "/room/[roomId]": "pages/room/[roomId].html",
+  "/room/[roomId]/check-in": "pages/room/[roomId]/check-in.html",
+  "/users/verify": "pages/users/verify.html",
+  "/room/join": "pages/room/join.html",
+  "/_document": "pages/_document.js",
+  "/404": "pages/404.html"
+}
